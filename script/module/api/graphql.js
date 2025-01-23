@@ -1,33 +1,34 @@
 const GRAPHQL_ENDPOINT = 'https://learn.zone01oujda.ma/api/graphql-engine/v1/graphql';
 
-export const loadProfileData = async () => {
-    const token = localStorage.getItem('token');
+export const executeQuery = async (query) => {
     try {
         const response = await fetch(GRAPHQL_ENDPOINT, {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
             },
-            body: JSON.stringify({
-                query: `
-                    {
-                        user {
-                            login
-                            id
-                        }
-                    }
-                `
-            })
+            body: JSON.stringify({query})
         });
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
 
         const data = await response.json();
-        const profileInfo = document.querySelector('.profile-info');
-        profileInfo.innerHTML = `
-            <h2>Welcome, ${data.data.user[0].login}!</h2>
-            <p>User ID: ${data.data.user[0].id}</p>
-        `;
+        
+        if (data.errors) throw data.errors[0].message
+
+        return data.data;
     } catch (error) {
-        console.error('Error loading profile:', error);
+        console.error(error);
     }
 }
+
+export const USER_INFO_QUERY = `
+{
+    user {
+        lastName
+        firstName
+    }
+}
+`;

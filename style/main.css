@@ -111,6 +111,7 @@ button:active {
 }
 
 .profile-header {
+    padding: 10px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -119,12 +120,8 @@ button:active {
 
 .profile-info h2 {
     color: var(--text-primary);
-    font-size: 20px;
+    font-size: 24px;
     font-weight: 600;
-}
-
-.profile-info p {
-    color: var(--text-secondary);
 }
 
 #logoutBtn {
@@ -135,8 +132,4 @@ button:active {
 
 #logoutBtn:hover {
     background-color: #dc2626;
-}
-
-.profile-info {
-    padding: 15px 25px ;
 }

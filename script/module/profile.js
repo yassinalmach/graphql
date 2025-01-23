@@ -1,7 +1,7 @@
 import { logout } from "./api/auth.js";
-import { loadProfileData } from "./api/graphql.js";
+import { executeQuery, USER_INFO_QUERY } from "./api/graphql.js";
 
-export const showProfile = () => {
+export const showProfile = async () => {
     const app = document.getElementById('app');
     app.innerHTML = /*HTML*/`
         <div class="profile-container">
@@ -14,5 +14,9 @@ export const showProfile = () => {
     `;
     document.getElementById('logoutBtn').addEventListener('click', logout);
 
-    loadProfileData();
+    const data = await executeQuery(USER_INFO_QUERY)
+    const profileInfo = document.querySelector('.profile-info');
+    profileInfo.innerHTML = `
+        <h2>Welcome, ${data.user[0].lastName} ${data.user[0].firstName}!</h2>
+    `;
 }
