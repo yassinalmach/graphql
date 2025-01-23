@@ -99,3 +99,44 @@ button:active {
     min-height: 30px;
     padding: 0 10px;
 }
+
+
+/* Profile Styles */
+.profile-container {
+    max-width: 1200px;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin: 0 auto;
+}
+
+.profile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid var(--border);
+}
+
+.profile-info h2 {
+    color: var(--text-primary);
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.profile-info p {
+    color: var(--text-secondary);
+}
+
+#logoutBtn {
+    background-color: #ef4444;
+    color: var(--text-primary);
+    padding: 15px 25px ;
+}
+
+#logoutBtn:hover {
+    background-color: #dc2626;
+}
+
+.profile-info {
+    padding: 15px 25px ;
+}
