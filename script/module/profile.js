@@ -1,5 +1,6 @@
-import { logout } from "./api/auth.js";
-import { executeQuery, USER_INFO_QUERY } from "./api/graphql.js";
+import { executeQuery } from "./api.js";
+import { USER_INFO_QUERY } from "./queries.js";
+import { logout } from "./utils.js";
 
 export const showProfile = async () => {
     const app = document.getElementById('app');
@@ -14,7 +15,7 @@ export const showProfile = async () => {
     `;
     document.getElementById('logoutBtn').addEventListener('click', logout);
 
-    const data = await executeQuery(USER_INFO_QUERY)
+    const data = await executeQuery(USER_INFO_QUERY);
     const profileInfo = document.querySelector('.profile-info');
     profileInfo.innerHTML = `
         <h2>Welcome, ${data.user[0].lastName} ${data.user[0].firstName}!</h2>

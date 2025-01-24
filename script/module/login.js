@@ -1,4 +1,4 @@
-import { setloginToken } from "./api/auth.js";
+import { getloginToken } from "./api.js";
 import { showProfile } from "./profile.js";
 import { convertToBase64 } from "./utils.js";
 
@@ -28,10 +28,11 @@ const setupSubmitForm = () => {
 
         try {
             const credentials = convertToBase64(`${identifier}:${password}`)
-            await setloginToken(credentials);
+            const token = await getloginToken(credentials);
+            localStorage.setItem('token', token)
             showProfile();
         } catch (error) {
             errorMessage.textContent = 'Invalid credentials.';
         }
     });
-}
+};
