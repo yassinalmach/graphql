@@ -42,3 +42,26 @@ const displayTotalXP = async () => {
     <div class="xp-value">${formatXP(totalXP)}</div>
   `
 }
+
+const displayAuditRatio = async () => {
+    const element = document.querySelector('.audit-ratio')
+    const data = await executeQuery(AUDIT_RATIO_QUERY);
+    const ratio = data.user[0].auditRatio.toFixed(1)
+    const totalDone = formatXP(data.user[0].totalUp)
+    const totalReceived = formatXP(data.user[0].totalDown)    
+    element.innerHTML = /*html*/`
+    <h1>Audit ratio</h1>
+    <div>
+        <span>Done: </span>
+        <span class="ratio-value">${totalDone}</span>
+    </div>
+    <div>
+        <span>Received: </span>
+        <span class="ratio-value">${totalReceived}</span>
+    </div>
+    <div>
+        <span>Ratio: </span>
+        <span class="ratio-value">${ratio}</span>
+    </div>
+    `
+}
