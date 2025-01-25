@@ -1,5 +1,5 @@
 import { executeQuery } from "./api.js";
-import { AUDIT_RATIO_QUERY, TOTAL_XP_QUERY, USER_INFO_QUERY } from "./queries.js";
+import { AUDIT_RATIO_QUERY, CURRENT_LEVEL_QUERY, TOTAL_XP_QUERY, USER_INFO_QUERY } from "./queries.js";
 import { formatXP, logout } from "./utils.js";
 
 export const showProfile = async () => {
@@ -15,6 +15,8 @@ export const showProfile = async () => {
                 </div>
                 <div class="audit-ratio">
                 </div>
+                <div class="level-badge">
+                </div>
             </div>
         </div>
     `;
@@ -28,6 +30,7 @@ export const showProfile = async () => {
 
     displayTotalXP();
     displayAuditRatio();
+    displayCurrentLevel();
 }
 
 const displayTotalXP = async () => {
@@ -36,7 +39,7 @@ const displayTotalXP = async () => {
 
     // calculate total xp
     const totalXP = data.transaction.reduce((acc, currentValue) => acc + currentValue.amount, 0);
-    
+
     element.innerHTML = `
     <h1>Total XP</h1>
     <div class="xp-value">${formatXP(totalXP)}</div>
@@ -48,7 +51,7 @@ const displayAuditRatio = async () => {
     const data = await executeQuery(AUDIT_RATIO_QUERY);
     const ratio = data.user[0].auditRatio.toFixed(1)
     const totalDone = formatXP(data.user[0].totalUp)
-    const totalReceived = formatXP(data.user[0].totalDown)    
+    const totalReceived = formatXP(data.user[0].totalDown)
     element.innerHTML = /*html*/`
     <h1>Audit ratio</h1>
     <div>
@@ -63,5 +66,16 @@ const displayAuditRatio = async () => {
         <span>Ratio: </span>
         <span class="ratio-value">${ratio}</span>
     </div>
+    `
+}
+
+const displayCurrentLevel = async () => {
+    const element = document.querySelector('.level-badge')
+    const data = await executeQuery(CURRENT_LEVEL_QUERY);
+    const currentLevel = data.user[0].transactions[0].amount;
+
+    element.innerHTML = /*html*/`
+    <h1>Current level</h1>
+    <span>level: ${currentLevel}</span>
     `
 }

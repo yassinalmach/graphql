@@ -1,3 +1,5 @@
+import { showLogin } from "./login.js";
+
 const API_URL = 'https://learn.zone01oujda.ma/api/auth/signin';
 const GRAPHQL_ENDPOINT = 'https://learn.zone01oujda.ma/api/graphql-engine/v1/graphql';
 
@@ -43,5 +45,9 @@ export const executeQuery = async (query) => {
         return data.data;
     } catch (error) {
         console.error(error);
+        if (error.includes("JWTExpired")) {
+            localStorage.removeItem('token')
+            showLogin();
+        }
     }
 }

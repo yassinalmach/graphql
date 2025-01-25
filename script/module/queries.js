@@ -38,3 +38,20 @@ export const AUDIT_RATIO_QUERY = `
   }
 }
 `
+
+export const CURRENT_LEVEL_QUERY = `
+{
+  user {
+    id
+    transactions(
+      where: {type: {_eq: "level"}, 
+        _or: [
+          {object: {type: {_eq: "project"}}},
+          {object: {type: {_eq: "piscine"}}}
+        ]}
+      limit: 1
+    ) {
+      amount
+    }
+  }
+}`
