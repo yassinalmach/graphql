@@ -1,4 +1,5 @@
 import { executeQuery } from "./api.js";
+import { XPLineChart } from "./charts.js";
 import { USER_INFO_QUERY } from "./queries.js";
 import { formatXP, logout } from "./utils.js";
 
@@ -15,17 +16,26 @@ export const showProfile = async () => {
                 <div class="total-xp"></div>
                 <div class="audit-ratio"></div>
             </div>
-            <div class="xp-chart">
-            </div>
-            <div class="skill-chart">
+            <div class="charts-container">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h2>XP Progress Over Time</h2>
+                    </div>
+                    <div class="xp-chart"></div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h2>Skills Distribution</h2>
+                    </div>
+                    <div class="skill-chart"></div>
+                </div>
             </div>
         </div>
     `;
     document.getElementById('logoutBtn').addEventListener('click', logout);
 
     await displayUserInfo();
-    // await displayXPchart();
-    // await diplaySkillChart();
+    await initializeCharts();
 }
 
 const displayUserInfo = async () => {
@@ -72,4 +82,14 @@ const displayUserInfo = async () => {
             </div>
         </div>
     `;
+}
+
+const initializeCharts = async () => {
+    try {
+        const xpChartContainer = document.querySelector('.xp-chart');
+        const xpChart = new XPLineChart(xpChartContainer);
+        await xpChart.initialize();
+    } catch (error) {
+        console.error('Error initializing charts:', error);
+    }
 }
