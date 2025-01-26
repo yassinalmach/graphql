@@ -118,9 +118,9 @@ button:active {
     border-bottom: 2px solid var(--border);
 }
 
-.profile-info h2 {
+.full-name h2 {
     color: var(--text-primary);
-    font-size: 24px;
+    font-size: 29px;
     font-weight: 600;
 }
 

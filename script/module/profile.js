@@ -1,5 +1,5 @@
 import { executeQuery } from "./api.js";
-import { AUDIT_RATIO_QUERY, CURRENT_LEVEL_QUERY, TOTAL_XP_QUERY, USER_INFO_QUERY } from "./queries.js";
+import { USER_INFO_QUERY } from "./queries.js";
 import { formatXP, logout } from "./utils.js";
 
 export const showProfile = async () => {
@@ -7,75 +7,69 @@ export const showProfile = async () => {
     app.innerHTML = /*HTML*/`
         <div class="profile-container">
             <header class="profile-header">
-                <div class="profile-info"></div>
+                <div class="full-name"></div>
                 <button id="logoutBtn">Logout</button>
             </header>
-            <div class="profile-content">
-                <div class="total-xp">
-                </div>
-                <div class="audit-ratio">
-                </div>
-                <div class="level-badge">
-                </div>
+            <div class="user-info">
+                <div class="current-level"></div>
+                <div class="total-xp"></div>
+                <div class="audit-ratio"></div>
+            </div>
+            <div class="xp-chart">
+            </div>
+            <div class="skill-chart">
             </div>
         </div>
     `;
     document.getElementById('logoutBtn').addEventListener('click', logout);
 
+    await displayUserInfo();
+    // await displayXPchart();
+    // await diplaySkillChart();
+}
+
+const displayUserInfo = async () => {
+    const fullNameElement = document.querySelector('.full-name');
+    const userInfoElement = document.querySelector('.user-info');
     const data = await executeQuery(USER_INFO_QUERY);
-    const profileInfo = document.querySelector('.profile-info');
-    profileInfo.innerHTML = `
+
+    // get current level
+    const currentLevel = data.user[0].transactions[0].amount;
+
+    // count total xp
+    const totalXP = data.transaction.reduce((acc, currentValue) => acc + currentValue.amount, 0);
+
+    // get audit info
+    const ratio = data.user[0].auditRatio.toFixed(1);
+    const totalDone = formatXP(data.user[0].totalUp);
+    const totalReceived = formatXP(data.user[0].totalDown);
+
+    fullNameElement.innerHTML = `
         <h2>Welcome, ${data.user[0].lastName} ${data.user[0].firstName}!</h2>
     `;
 
-    displayTotalXP();
-    displayAuditRatio();
-    displayCurrentLevel();
-}
+    userInfoElement.innerHTML = /*html*/`
+        <div class="current-level">
+            <h1>Current level</h1>
+            <span>level: ${currentLevel}</span>
+        </div>
 
-const displayTotalXP = async () => {
-    const element = document.querySelector('.total-xp')
-    const data = await executeQuery(TOTAL_XP_QUERY);
+        <div class="total-xp">
+            <h1>Total XP</h1>
+            <div class="xp-value">${formatXP(totalXP)}</div>
+        </div>
 
-    // calculate total xp
-    const totalXP = data.transaction.reduce((acc, currentValue) => acc + currentValue.amount, 0);
-
-    element.innerHTML = `
-    <h1>Total XP</h1>
-    <div class="xp-value">${formatXP(totalXP)}</div>
-  `
-}
-
-const displayAuditRatio = async () => {
-    const element = document.querySelector('.audit-ratio')
-    const data = await executeQuery(AUDIT_RATIO_QUERY);
-    const ratio = data.user[0].auditRatio.toFixed(1)
-    const totalDone = formatXP(data.user[0].totalUp)
-    const totalReceived = formatXP(data.user[0].totalDown)
-    element.innerHTML = /*html*/`
-    <h1>Audit ratio</h1>
-    <div>
-        <span>Done: </span>
-        <span class="ratio-value">${totalDone}</span>
-    </div>
-    <div>
-        <span>Received: </span>
-        <span class="ratio-value">${totalReceived}</span>
-    </div>
-    <div>
-        <span>Ratio: </span>
-        <span class="ratio-value">${ratio}</span>
-    </div>
-    `
-}
-
-const displayCurrentLevel = async () => {
-    const element = document.querySelector('.level-badge')
-    const data = await executeQuery(CURRENT_LEVEL_QUERY);
-    const currentLevel = data.user[0].transactions[0].amount;
-
-    element.innerHTML = /*html*/`
-    <h1>Current level</h1>
-    <span>level: ${currentLevel}</span>
-    `
+        <div class="audit-ratio">
+            <h1>Audit ratio</h1>
+            <div>
+                <span>Done: ${totalDone}</span>
+            </div>
+            <div>
+                <span>Received: ${totalReceived}</span>
+            </div>
+            <div>
+                <span>Ratio: ${ratio}</span>
+            </div>
+        </div>
+    `;
 }
