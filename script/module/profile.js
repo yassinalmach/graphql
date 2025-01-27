@@ -1,5 +1,5 @@
 import { executeQuery } from "./api.js";
-import { XPLineChart } from "./charts.js";
+import { SkillBarChart, XPLineChart } from "./charts.js";
 import { USER_INFO_QUERY } from "./queries.js";
 import { formatXP, logout } from "./utils.js";
 
@@ -86,9 +86,15 @@ const displayUserInfo = async () => {
 
 const initializeCharts = async () => {
     try {
+        // Initialize XP Chart
         const xpChartContainer = document.querySelector('.xp-chart');
         const xpChart = new XPLineChart(xpChartContainer);
         await xpChart.initialize();
+
+        // Initialize Skills Chart
+        const skillChartContainer = document.querySelector('.skill-chart');
+        const skillChart = new SkillBarChart(skillChartContainer);
+        await skillChart.initialize();
     } catch (error) {
         console.error('Error initializing charts:', error);
     }
