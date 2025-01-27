@@ -5,7 +5,7 @@ import { formatXP } from "./utils.js";
 export class XPLineChart {
     constructor(container) {
         this.container = container;
-        this.margin = { top: 20, right: 40, bottom: 30, left: 80 };
+        this.margin = { top: 20, right: 40, bottom: 90, left: 80 };
         this.width = container.clientWidth - this.margin.left - this.margin.right;
         this.height = 600 - this.margin.top - this.margin.bottom;
     }
@@ -14,14 +14,14 @@ export class XPLineChart {
         try {
             const data = await this.fetchData();
             if (!data || data.length === 0) return;
-            
+
             this.createSVG();
             this.processData(data);
             this.createScales();
             this.drawAxes();
             this.drawLine();
             this.drawPoints();
-            this.setupTooltip();
+            this.setupBarInfo();
         } catch (error) {
             console.error('Error initializing chart:', error);
             this.container.innerHTML = '<p class="error-message">Error loading chart data</p>';
@@ -33,47 +33,54 @@ export class XPLineChart {
         return response.transaction;
     }
 
+    // Create new SVG element using the SVG XML namespace
     createSVG() {
         this.svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        // viewBox="minX minY width height"
         this.svg.setAttribute("viewBox", `0 0 ${this.width + this.margin.left + this.margin.right} ${this.height + this.margin.top + this.margin.bottom}`);
         this.svg.style.width = "100%";
         this.svg.style.height = "100%";
-        
+
+        // Create a group (g) element to contain all chart elements
         this.g = document.createElementNS("http://www.w3.org/2000/svg", "g");
         this.g.setAttribute("transform", `translate(${this.margin.left},${this.margin.top})`);
-        
+
         this.svg.appendChild(this.g);
         this.container.appendChild(this.svg);
     }
 
+    // transforms raw xp data into a point format needed for the chart
     processData(data) {
-        this.data = data.map((d, i) => {
+        this.cumulativeXP = 0
+        this.data = data.map((d) => {
+            this.cumulativeXP += d.amount
             return {
                 date: new Date(d.createdAt),
                 amount: d.amount,
-                cumulative: data.slice(0, i + 1).reduce((sum, item) => sum + item.amount, 0)
+                projectName: d.object.name,
+                cumulative: this.cumulativeXP,
             };
         });
     }
 
+    // Creates scaling functions to convert data values to pixel positions
     createScales() {
-        // X scale (time)
+        // X axis (time)
         const xMin = this.data[0].date;
         const xMax = this.data[this.data.length - 1].date;
-        this.xScale = (x) => {
-            return (x - xMin) / (xMax - xMin) * this.width;
-        };
+        // (x - xMin): Shifts all dates to start at 0 - (xMax - xMin): Total time -  this.width: Scales to pixel width
+        this.xScale = (x) => (x - xMin) / (xMax - xMin) * this.width;
+
 
         // Y scale (XP amount)
-        const yMax = Math.max(...this.data.map(d => d.cumulative));
-        this.yScale = (y) => {
-            return this.height - (y / yMax * this.height);
-        };
+        const yMax = this.cumulativeXP;
+        this.yScale = (y) => this.height - (y / yMax * this.height);
 
         // Store for axis generation
         this.yMax = yMax;
     }
 
+    // The function creates: X-axis for time, Y-axis for XP values, labels for both axes
     drawAxes() {
         // X Axis
         const xAxis = document.createElementNS("http://www.w3.org/2000/svg", "g");
@@ -88,11 +95,11 @@ export class XPLineChart {
         xAxis.appendChild(xAxisLine);
 
         // X Axis labels
-        const numXTicks = 5;
+        const numXTicks = 10;
         for (let i = 0; i <= numXTicks; i++) {
-            const date = new Date(this.data[0].date.getTime() + (this.data[this.data.length - 1].date.getTime() - this.data[0].date.getTime()) * (i / numXTicks));
+            const date = new Date(this.data[0].date.getTime() + (this.data[this.data.length - 1].date.getTime() - this.data[0].date.getTime()) * i / numXTicks);
             const x = this.xScale(date);
-            
+
             const tick = document.createElementNS("http://www.w3.org/2000/svg", "line");
             tick.setAttribute("x1", x);
             tick.setAttribute("x2", x);
@@ -104,10 +111,12 @@ export class XPLineChart {
             const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
             label.setAttribute("x", x);
             label.setAttribute("y", 25);
-            label.setAttribute("text-anchor", "middle");
+            // label.setAttribute("text-anchor", "middle");
             label.setAttribute("fill", "#9CA3AF");
             label.textContent = date.toLocaleDateString();
             xAxis.appendChild(label);
+            label.setAttribute("text-anchor", "end");
+            label.setAttribute("transform", `rotate(-45, ${x}, 25)`);
         }
 
         // Y Axis
@@ -122,7 +131,7 @@ export class XPLineChart {
         yAxis.appendChild(yAxisLine);
 
         // Y Axis labels
-        const numYTicks = 5;
+        const numYTicks = 10;
         for (let i = 0; i <= numYTicks; i++) {
             const yValue = (this.yMax * i) / numYTicks;
             const y = this.yScale(yValue);
@@ -134,6 +143,16 @@ export class XPLineChart {
             tick.setAttribute("y2", y);
             tick.setAttribute("stroke", "#4B5563");
             yAxis.appendChild(tick);
+
+            // Grid line
+            const gridLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            gridLine.setAttribute("x1", "0");
+            gridLine.setAttribute("x2", this.width);
+            gridLine.setAttribute("y1", y);
+            gridLine.setAttribute("y2", y);
+            gridLine.setAttribute("stroke", "#374151");
+            gridLine.setAttribute("stroke-dasharray", "2,2");
+            this.g.appendChild(gridLine);
 
             const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
             label.setAttribute("x", -15);
@@ -149,9 +168,10 @@ export class XPLineChart {
         this.g.appendChild(yAxis);
     }
 
+    // Creates the line of the data
     drawLine() {
         const line = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        
+
         const pathData = this.data.map((d, i) => {
             const x = this.xScale(d.date);
             const y = this.yScale(d.cumulative);
@@ -162,10 +182,11 @@ export class XPLineChart {
         line.setAttribute("fill", "none");
         line.setAttribute("stroke", "#4ADE80");
         line.setAttribute("stroke-width", "2");
-        
+
         this.g.appendChild(line);
     }
 
+    // Creates point to view data
     drawPoints() {
         const pointsGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
         pointsGroup.setAttribute("class", "points");
@@ -176,20 +197,24 @@ export class XPLineChart {
             point.setAttribute("cy", this.yScale(d.cumulative));
             point.setAttribute("r", "4");
             point.setAttribute("fill", "#4ADE80");
+            point.setAttribute("data-project", d.projectName);
+            point.setAttribute("data-xp", formatXP(d.amount));
             point.setAttribute("data-date", d.date.toLocaleDateString());
-            point.setAttribute("data-xp", formatXP(d.cumulative));
-            
+            point.setAttribute("data-totalXP", formatXP(d.cumulative));
+
+
             // Add hover effect
-            point.addEventListener("mouseover", (e) => this.showTooltip(e));
-            point.addEventListener("mouseout", () => this.hideTooltip());
-            
+            point.addEventListener("mouseover", (e) => this.showInfo(e));
+            point.addEventListener("mouseout", () => this.hideInfo());
+
             pointsGroup.appendChild(point);
         });
 
         this.g.appendChild(pointsGroup);
     }
 
-    setupTooltip() {
+    // Creates and configures the tooltip element
+    setupBarInfo() {
         this.tooltip = document.createElement("div");
         this.tooltip.className = "chart-tooltip";
         this.tooltip.style.position = "absolute";
@@ -202,40 +227,47 @@ export class XPLineChart {
         this.tooltip.style.pointerEvents = "none";
         this.tooltip.style.zIndex = "1000";
         this.tooltip.style.border = "1px solid #374151";
-        
+
         this.container.style.position = "relative";
         this.container.appendChild(this.tooltip);
     }
 
-    showTooltip(event) {
+    // shows tooltip element
+    showInfo(event) {
         const point = event.target;
-        const date = point.getAttribute("data-date");
+
+        const projectName = point.getAttribute("data-project");
         const xp = point.getAttribute("data-xp");
-        
+        const date = point.getAttribute("data-date");
+        const totalXP = point.getAttribute("data-totalXP");
+
         this.tooltip.innerHTML = `
+            <div>${projectName}</div>
+            <div>XP: ${xp}</div>
             <div>Date: ${date}</div>
-            <div>Total XP: ${xp}</div>
+            <div>Total XP: ${totalXP}</div>
         `;
-        
+
         this.tooltip.style.display = "block";
-        
+
         // Position tooltip
         const rect = this.container.getBoundingClientRect();
         const pointRect = point.getBoundingClientRect();
-        const tooltipRect = this.tooltip.getBoundingClientRect();
-        
-        let left = pointRect.left - rect.left - (tooltipRect.width / 2) + 4;
-        let top = pointRect.top - rect.top - tooltipRect.height - 10;
-        
+        const infoRect = this.tooltip.getBoundingClientRect();
+
+        let left = pointRect.left - rect.left - (infoRect.width / 2);
+        let top = pointRect.top - rect.top - infoRect.height - 10;
+
         // Ensure tooltip stays within container bounds
-        left = Math.max(0, Math.min(left, rect.width - tooltipRect.width));
+        left = Math.max(0, Math.min(left, rect.width - infoRect.width));
         top = Math.max(0, top);
-        
+
         this.tooltip.style.left = `${left}px`;
         this.tooltip.style.top = `${top}px`;
     }
 
-    hideTooltip() {
+    // hide tooltip element
+    hideInfo() {
         this.tooltip.style.display = "none";
     }
 }
