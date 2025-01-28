@@ -7,10 +7,10 @@ export const getloginToken = async (credentials) => {
     try {
         const response = await fetch(API_URL, {
             method: 'POST',
-                headers: {
-                    'Authorization': `Basic ${credentials}`,
-                    'Content-Type': 'application/json'
-                }
+            headers: {
+                'Authorization': `Basic ${credentials}`,
+                'Content-Type': 'application/json'
+            }
         });
         if (!response.ok) {
             throw new Error('Invalid credentials');
@@ -45,9 +45,7 @@ export const executeQuery = async (query) => {
         return data.data;
     } catch (error) {
         console.error(error);
-        if (error.includes("JWTExpired")) {
-            localStorage.removeItem('token')
-            showLogin();
-        }
+        localStorage.removeItem('token')
+        showLogin();
     }
 }
