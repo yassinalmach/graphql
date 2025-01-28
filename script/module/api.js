@@ -24,7 +24,7 @@ export const getloginToken = async (credentials) => {
     }
 }
 
-export const executeQuery = async (query) => {
+export const executeQuery = async (query, variables = null) => {
     try {
         const response = await fetch(GRAPHQL_ENDPOINT, {
             method: 'POST',
@@ -32,7 +32,7 @@ export const executeQuery = async (query) => {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
             },
-            body: JSON.stringify({ query })
+            body: JSON.stringify({ query: query, variables: variables })
         });
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);

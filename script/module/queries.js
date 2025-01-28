@@ -1,5 +1,5 @@
 export const USER_INFO_QUERY = `
-{
+query getUserInfo($arg: String!) {
   user {
     lastName
     firstName
@@ -19,7 +19,7 @@ export const USER_INFO_QUERY = `
   }
   transaction(
     where: {type: {_eq: "xp"},
-      _or: [{object: {type: {_eq: "project"}}}, {object: {type: {_eq: "piscine"}}}, {path: {_ilike: "%module/checkpoint%"}}]}
+      _or: [{object: {type: {_eq: "project"}}}, {object: {type: {_eq: "piscine"}}}, {path: {_ilike: $arg}}]}
   ) {
     amount
     path

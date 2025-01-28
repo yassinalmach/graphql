@@ -41,7 +41,7 @@ export const showProfile = async () => {
 const displayUserInfo = async () => {
     const fullNameElement = document.querySelector('.full-name');
     const userInfoElement = document.querySelector('.user-info');
-    const data = await executeQuery(USER_INFO_QUERY);
+    const data = await executeQuery(USER_INFO_QUERY, {"arg": "%module/checkpoint%"});
 
     // get current level
     const currentLevel = data.user[0].transactions[0].amount;
